@@ -1,0 +1,32 @@
+include:
+  - infradatabase.yaml
+
+services:
+  api:
+    build: ./api
+    ports:
+      - "5000:5000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    develop:
+      watch:
+        - action: sync
+          path: ./api
+          target: /app
+
+  ihm:
+    build: ./ihm
+    ports:
+      - "8501:8501" # Streamlit
+      # - "7860:7860" # Gradio 
+    develop:
+      watch:
+        - action: sync
+          path: ./ihm
+          target: /app
+
