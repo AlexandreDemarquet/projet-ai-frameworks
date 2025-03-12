@@ -11,11 +11,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 app = Flask(__name__)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_path', type=str, default='./weights/FilmClassifier.pth', help='path of the model') # add an argument '--model_path'
+parser.add_argument('--model_path', type=str, default='./weights/filmClassifier.pth', help='path of the model') # add an argument '--model_path'
 args = parser.parse_args()
 model_path = args.model_path
 
-model = FilmClassifier().to(device)
+model = FilmClassifier(10).to(device)
 # Load the model
 model.load_state_dict(torch.load(model_path))
 model.eval()
@@ -25,12 +25,10 @@ model.eval()
 #  'romance': 7, 'science Fiction': 8, 'thriller': 9}
 
 
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.Lambda(lambda img: img.convert('L') if img.mode == 'RGB' else img),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])
+transform = transforms.Compose(
+        [transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))])
 
 @app.route('/predict', methods=['POST'])
 def predict():
