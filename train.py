@@ -11,20 +11,20 @@ from torchvision.datasets import ImageFolder
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def train(net, optimizer, loader, epochs=10):
-    criterion = nn.CrossEntropyLoss()
-    for epoch in range(epochs):
-        running_loss = []
-        t = tqdm(loader)
-        for x, y in t:
-            x, y = x.to(device), y.to(device)
-            outputs = net(x)
-            loss = criterion(outputs, y)
-            running_loss.append(loss.item())
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            t.set_description(f'training loss: {mean(running_loss)}')
+# def train(net, optimizer, loader, epochs=10):
+#     criterion = nn.CrossEntropyLoss()
+#     for epoch in range(epochs):
+#         running_loss = []
+#         t = tqdm(loader)
+#         for x, y in t:
+#             x, y = x.to(device), y.to(device)
+#             outputs = net(x)
+#             loss = criterion(outputs, y)
+#             running_loss.append(loss.item())
+#             optimizer.zero_grad()
+#             loss.backward()
+#             optimizer.step()
+#             t.set_description(f'training loss: {mean(running_loss)}')
 
 def test(model, dataloader):
     test_corrects = 0
@@ -42,7 +42,7 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--exp_name', type=str, default = 'MNIST', help='experiment name')
+    parser.add_argument('--exp_name', type=str, default = 'Film', help='experiment name')
     parser.add_argument('--epoch', type=int, default=10, help='number of epochs')
     parser.add_argument('--batch_size', type=int, default=8, help='batch size')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
