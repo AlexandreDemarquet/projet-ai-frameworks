@@ -1,0 +1,3 @@
+TODO:
+- télécharger les poids du réseau de neuonnes dans le dockerfile de l'api
+- faire la redirection de requete de l'ihm vers api (possible d'accéder à l'ihm depuis container mais ihm impossible de joindre l'api)

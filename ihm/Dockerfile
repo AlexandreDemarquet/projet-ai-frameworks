@@ -13,7 +13,7 @@ COPY . /app
     
 RUN pip3 install -r requirements.txt
 
-EXPOSE 8501
+EXPOSE 7860
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 

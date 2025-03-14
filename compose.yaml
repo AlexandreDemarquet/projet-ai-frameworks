@@ -22,8 +22,8 @@ services:
   ihm:
     build: ./ihm
     ports:
-      - "8501:8501" # Streamlit
-      # - "7860:7860" # Gradio 
+      # - "8501:8501" # Streamlit
+      - "7860:7860" # Gradio 
     develop:
       watch:
         - action: sync

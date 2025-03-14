@@ -70,4 +70,4 @@ if __name__ == '__main__':
         inputs="image", 
         outputs=["text", "image"],
         description="Mettre un poster de film pour prédire son genre et avoir des recommandations"
-    ).launch(debug=True, share=True)
+    ).launch(debug=True, share=True, server_name="0.0.0.0", server_port=7860)
