@@ -1,8 +1,38 @@
-include:
-  - infradatabase.yaml
+# include:
+#   - infradatabase.yaml
+
+# services:
+#   api:
+#     build: ./api
+#     ports:
+#       - "5000:5000"
+#     deploy:
+#       resources:
+#         reservations:
+#           devices:
+#             - driver: nvidia
+#               count: 1
+#               capabilities: [gpu]
+#     develop:
+#       watch:
+#         - action: sync
+#           path: ./api
+#           target: /app
+
+#   ihm:
+#     build: ./ihm
+#     ports:
+#       # - "8501:8501" # Streamlit
+#       - "7860:7860" # Gradio 
+#     develop:
+#       watch:
+#         - action: sync
+#           path: ./ihm
+#           target: /app
 
 services:
   api:
+    container_name: api
     build: ./api
     ports:
       - "5000:5000"
@@ -13,20 +43,21 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    develop:
-      watch:
-        - action: sync
-          path: ./api
-          target: /app
+    networks:
+      - film-network
 
-  ihm:
+  interface:
+    container_name: ihm
     build: ./ihm
     ports:
-      # - "8501:8501" # Streamlit
-      - "7860:7860" # Gradio 
-    develop:
-      watch:
-        - action: sync
-          path: ./ihm
-          target: /app
+      - "7860:7860"
+    depends_on:
+      - api
+    networks:
+      - film-network
+
+networks:
+  film-network:
+    driver: bridge
+
 
