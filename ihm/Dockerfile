@@ -20,20 +20,18 @@
 # # ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 # ENTRYPOINT ["python", "webapp.py"]
 
-# Utiliser une image Python comme base
 FROM python:3.9
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les fichiers de l'application
-COPY . /app
 
-# Installer les dépendances
+
+
+COPY requirements.txt /app
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Exposer le port 5001 pour Streamlit
+COPY . /app
 EXPOSE 7860
 
-# Commande pour exécuter l'application Streamlit
-CMD ["streamlit", "run", "webapp_st.py", "--server.port=7860", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "Page_principale.py", "--server.port=7860", "--server.address=0.0.0.0"]
