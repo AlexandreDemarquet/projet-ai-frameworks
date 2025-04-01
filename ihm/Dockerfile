@@ -32,6 +32,13 @@ COPY . /app
 # Installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Créer le répertoire pour les poids
+RUN mkdir -p /app/weights
+
+# Télécharger les poids du modèle depuis Google Drive
+RUN curl -L -o weights/filmClassifier.pth "https://drive.google.com/uc?export=download&id=1rJ8TqbqQvk7uQnmOh9mJbk_m4anlh8f"
+
+
 # Exposer le port 5001 pour Streamlit
 EXPOSE 7860
 
