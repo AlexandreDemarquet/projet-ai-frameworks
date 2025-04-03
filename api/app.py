@@ -11,7 +11,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 app = Flask(__name__)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_path', type=str, default='./weights/filmClassifier.pth', help='path of the model') # add an argument '--model_path'
+parser.add_argument('--model_path', type=str, default='./app/weights/filmClassifier.pth', help='path of the model') # add an argument '--model_path'
 args = parser.parse_args()
 model_path = args.model_path
 
