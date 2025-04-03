@@ -8,6 +8,8 @@ import torchvision.models as models
 from tqdm.notebook import tqdm
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+from embeggings_model import model
+
 
 
 # Chargement des données d'images
@@ -28,9 +30,7 @@ dataloader = DataLoader(dataset, batch_size=128, num_workers=2, shuffle=False)
 
 
 # Chargement du modèle MobileNetV3 pré-entraîné pour générer des embeddings
-mobilenet = models.mobilenet_v3_small(pretrained=True)
-
-model = torch.nn.Sequential(mobilenet.features, mobilenet.avgpool, torch.nn.Flatten()).cuda()
+model = model.cuda()
 
 
 # Création des embeddings par extraction des caractéristiques
@@ -41,6 +41,13 @@ for x, paths in tqdm(dataloader):
         embeddings = model(x.cuda())
         features_list.extend(embeddings.cpu().numpy())
         paths_list.extend(paths)
+
+df = pd.DataFrame({
+    'features': features_list,
+    'path': paths_list
+})
+
+df.to_csv('annoy-database.csv', index=False)
 
 
 # Création et sauvegarde d'un index Annoy à partir de fichiers d'images

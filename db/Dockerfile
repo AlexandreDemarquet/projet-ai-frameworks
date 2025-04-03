@@ -8,7 +8,9 @@ WORKDIR /app
 COPY . /app
 
 # Installer les dépendances
-RUN pip install fastapi uvicorn annoy numpy
+
+RUN apt update && apt install -y python3 python3-pip && \
+    pip3 install --no-cache-dir -r requirements.txt
 
 # Exposer le port 8000
 EXPOSE 8000
