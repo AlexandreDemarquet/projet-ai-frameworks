@@ -1,8 +1,17 @@
+# Utiliser une image Python
 FROM python:3.10
 
+# Définir le répertoire de travail
 WORKDIR /app
 
-RUN pip install annoy
+# Copier les fichiers nécessaires
+COPY . /app
 
-COPY test_annoy.py . 
-CMD ["tail", "-f", "/dev/null"]  # Pour garder le conteneur actif
+# Installer les dépendances
+RUN pip install fastapi uvicorn annoy numpy
+
+# Exposer le port 8000
+EXPOSE 8000
+
+# Commande pour démarrer l'API
+CMD ["uvicorn", "api_db:app", "--host", "0.0.0.0", "--port", "8000"]
