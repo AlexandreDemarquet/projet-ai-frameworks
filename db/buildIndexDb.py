@@ -24,7 +24,7 @@ inv_normalize = transforms.Normalize(
 transform = transforms.Compose([transforms.Resize((224, 224)),
                                 transforms.ToTensor(),
                                 normalize])
-dataset = torchvision.datasets.ImageFolder(root="/sorted_movie_posters_paligema", transform=transform)
+dataset = torchvision.datasets.ImageFolder(root="sorted_movie_posters_paligema", transform=transform)
 
 dataloader = DataLoader(dataset, batch_size=128, num_workers=2, shuffle=False)
 
@@ -40,7 +40,7 @@ for x, paths in tqdm(dataloader):
     with torch.no_grad():
         embeddings = model(x.cuda())
         features_list.extend(embeddings.cpu().numpy())
-        paths_list.extend(paths)
+        paths_list.extend(paths.numpy())
 
 df = pd.DataFrame({
     'features': features_list,
@@ -54,6 +54,7 @@ df.to_csv('annoy-database.csv', index=False)
 dim = 576
 annoy_index = AnnoyIndex(dim, 'angular')
 for i, embedding in enumerate(features_list):
+    print("--> Embedding shape:", embedding.shape)
     annoy_index.add_item(i, embedding)
 
 annoy_index.build(10)

@@ -15,7 +15,7 @@ model=model.to(device)
 
 
 # Charger l'index
-dimension = 100
+dimension = 576  # Dimension des embeddings
 index = AnnoyIndex(dimension, 'angular')
 index.load("annoy_index.ann")  # Charger l'index pré-construit
 df = pd.read_csv("annoy-database.csv")
@@ -34,6 +34,14 @@ transform = transforms.Compose([transforms.Resize((224, 224)),
                                 transforms.ToTensor(),
                                 normalize])
 
+df = pd.read_csv('annoy-database.csv')
+paths_list = df['path'].tolist()
+
+def search(query_vector, k=5):
+    indices = index.get_nns_by_vector(query_vector, k)
+    paths = [paths_list[idx] for idx in indices]
+    return paths
+
 @app.route('/predict', methods=['POST'])
 def predict():
     """
@@ -50,12 +58,22 @@ def predict():
 
         with torch.no_grad():
             embeddings = model(tensor)
+            print("Embedding shape:", embeddings.shape) 
 
         k=5
-        query_vector = embeddings.cpu().numpy()
-        neighbors = index.get_nns_by_vector(query_vector, k, include_distances=True)
-        paths = df.iloc[neighbors]['path'].unique()
-        return jsonify({"prediction": neighbors})
+        # Convertir l'embedding (1, 576) en un tableau numpy (576,)
+        query_vector = embeddings.cpu().numpy().flatten()
+        if query_vector.shape[0] != 576:
+            raise ValueError(f"--->Expected vector of length 576, but got {query_vector.shape}")
+
+        result = search(query_vector)
+
+        print("neighbors:", result)
+
+        return jsonify({"prediction": result})
+        print("neighbors", result)
+
+        return jsonify({"prediction": result})
     except Exception as e:
         return {"error": str(e)}
 
