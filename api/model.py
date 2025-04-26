@@ -8,7 +8,7 @@ class FilmClassifier(nn.Module):
         super(FilmClassifier, self).__init__()
 
         # Charger resnet pré-entraîné
-        self.model = models.resnet50(pretrained=True)
+        self.model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
 
         # Adapter la dernière couche au nombre de classes
         num_ftrs = self.model.fc.in_features

@@ -15,9 +15,10 @@ parser.add_argument('--model_path', type=str, default='./app/weights/filmClassif
 args = parser.parse_args()
 model_path = args.model_path
 
-model = FilmClassifier(10).to(device)
+model = FilmClassifier(10)
 # Load the model
 model.load_state_dict(torch.load(model_path))
+model.to(device)
 model.eval()
 
 # Les différentes catégories : {'action': 0, 'animation': 1, 'comedy': 2, 'documentary': 3, 
