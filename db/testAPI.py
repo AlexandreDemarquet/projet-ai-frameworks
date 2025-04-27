@@ -1,5 +1,6 @@
 import requests
 import numpy as np
+import matplotlib.pyplot as plt
 
 # URL de base de l'API
 API_URL = "http://127.0.0.1:8000"
@@ -38,13 +39,14 @@ def test_predict():
             assert isinstance(item, (str, int)), f"Item {item} is not a string or int"
 
         print("✅ Test passed! Results:", json_data["prediction"])
+        return json_data
 
     except Exception as e:
         print("❌ Exception occurred during test:")
         print(e)
 
 if __name__ == "__main__":
-    test_predict()
+    response = test_predict()
 
 
 

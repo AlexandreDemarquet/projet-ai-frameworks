@@ -46,6 +46,14 @@ services:
     networks:
       - film-network
 
+  db:
+    container_name: db
+    build: ./db
+    ports:
+      - "8000:8000"
+    networks:
+      - film-network
+
   interface:
     container_name: ihm
     build: ./ihm
@@ -53,6 +61,9 @@ services:
       - "7860:7860"
     depends_on:
       - api
+      - db
+    volumes:
+      - /db/sorted_movie_posters_paligema:/app/sorted_movie_posters_paligema
     networks:
       - film-network
 

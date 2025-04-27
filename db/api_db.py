@@ -63,17 +63,11 @@ def predict():
         k=5
         # Convertir l'embedding (1, 576) en un tableau numpy (576,)
         query_vector = embeddings.cpu().numpy().flatten()
-        if query_vector.shape[0] != 576:
-            raise ValueError(f"--->Expected vector of length 576, but got {query_vector.shape}")
 
-        result = search(query_vector)
+        index_result = search(query_vector)
 
-        print("neighbors:", result)
-
-        return jsonify({"prediction": result})
-        print("neighbors", result)
-
-        return jsonify({"prediction": result})
+        return jsonify({"prediction": index_result})
+    
     except Exception as e:
         return {"error": str(e)}
 
