@@ -1,13 +1,15 @@
 import streamlit as st
 import requests
 import io
+import base64
 from PIL import Image
 
+# Adresse de l'API (assure-toi qu'elle est accessible depuis Streamlit)
 API_URL = "http://db:8000"
-
 
 def find_similar(image):
     try:
+        # Convertir l'image PIL en bytes pour l'envoi
         img_binary = io.BytesIO()
         image.save(img_binary, format="PNG")
         img_binary.seek(0)
@@ -19,8 +21,8 @@ def find_similar(image):
         )
 
         if response.status_code == 200:
-            paths = response.json()["prediction"]
-            return paths
+            data = response.json()
+            return data["images"]
         else:
             st.error(f"Erreur API: {response.status_code} - {response.text}")
             return []
@@ -28,24 +30,27 @@ def find_similar(image):
         st.error(f"Erreur de communication avec l'API: {str(e)}")
         return []
 
-st.title("🎬 Recommandations de Films à partir d'une Image")
+# Interface utilisateur Streamlit
+st.set_page_config(page_title="Reco Films", layout="centered")
+st.title("🎬 Recommandations de Films à partir d'une Affiche")
 
 uploaded_image = st.file_uploader("Uploader une image de poster de film", type=["png", "jpg", "jpeg"])
 
 if uploaded_image:
     image = Image.open(uploaded_image)
-    st.image(image, caption="Image chargée", use_column_width=True)
+    st.image(image, caption="🎞️ Image chargée", use_column_width=True)
 
     if st.button("🔍 Trouver des films similaires"):
-        similar_paths = find_similar(image)
-        if similar_paths:
-            st.write("Films similaires trouvés :")
-            for path in similar_paths:
+        similar_images_b64 = find_similar(image)
+
+        if similar_images_b64:
+            st.subheader("🎯 Films similaires trouvés :")
+            for i, b64_img in enumerate(similar_images_b64):
                 try:
-                    # Ici, on suppose que le chemin est accessible localement
-                    img = Image.open(path)
-                    st.image(img, caption=path, use_column_width=True)
+                    img_bytes = base64.b64decode(b64_img)
+                    img = Image.open(io.BytesIO(img_bytes))
+                    st.image(img, caption=f"Recommandation #{i+1}", use_column_width=True)
                 except Exception as e:
-                    st.write(f"Impossible de charger {path}: {str(e)}")
+                    st.write(f"Erreur lors de l'affichage d'une image : {str(e)}")
         else:
-            st.write("❌ Aucune recommandation trouvée.")
+            st.warning("❌ Aucune recommandation trouvée.")

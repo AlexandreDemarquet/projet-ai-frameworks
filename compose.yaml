@@ -62,8 +62,6 @@ services:
     depends_on:
       - api
       - db
-    volumes:
-      - /db/sorted_movie_posters_paligema:/app/sorted_movie_posters_paligema
     networks:
       - film-network
 

@@ -7,6 +7,9 @@ import torchvision.transforms as transforms
 from PIL import Image
 import io
 import pandas as pd
+import base64
+
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -42,34 +45,70 @@ def search(query_vector, k=5):
     paths = [paths_list[idx] for idx in indices]
     return paths
 
+# @app.route('/predict', methods=['POST'])
+# def predict():
+#     """
+#     Recherche les k voisins les plus proches d'une image.
+#     On utilise l'embedding de l'image calculé à partir de mobilnet.
+#     """
+#     try:
+#         img_binary = request.data
+#         img_pil = Image.open(io.BytesIO(img_binary))
+
+#         # Transform the PIL image
+#         tensor = transform(img_pil).to(device)
+#         tensor = tensor.unsqueeze(0)
+
+#         with torch.no_grad():
+#             embeddings = model(tensor)
+#             print("Embedding shape:", embeddings.shape) 
+
+#         k=5
+#         # Convertir l'embedding (1, 576) en un tableau numpy (576,)
+#         query_vector = embeddings.cpu().numpy().flatten()
+
+#         index_result = search(query_vector)
+
+#         return jsonify({"prediction": index_result})
+    
+#     except Exception as e:
+#         return {"error": str(e)}
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Recherche les k voisins les plus proches d'une image.
-    On utilise l'embedding de l'image calculé à partir de mobilnet.
-    """
     try:
         img_binary = request.data
         img_pil = Image.open(io.BytesIO(img_binary))
 
-        # Transform the PIL image
+        # Transformation de l'image
         tensor = transform(img_pil).to(device)
         tensor = tensor.unsqueeze(0)
 
         with torch.no_grad():
             embeddings = model(tensor)
-            print("Embedding shape:", embeddings.shape) 
 
-        k=5
-        # Convertir l'embedding (1, 576) en un tableau numpy (576,)
+        k = 5
         query_vector = embeddings.cpu().numpy().flatten()
 
-        index_result = search(query_vector)
+        # Récupère les chemins vers les images similaires
+        image_paths = search(query_vector) 
 
-        return jsonify({"prediction": index_result})
-    
+        # Charger et encoder les images en base64
+        encoded_images = []
+        for path in image_paths:
+            with open(path, "rb") as f:
+                img_data = f.read()
+                encoded = base64.b64encode(img_data).decode("utf-8")
+                encoded_images.append(encoded)
+
+        return jsonify({
+            "images": encoded_images,
+            "format": "base64",
+            "note": "Chaque image est encodée en base64, à décoder côté client pour affichage"
+        })
+
     except Exception as e:
-        return {"error": str(e)}
+        return jsonify({"error": str(e)})
+
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True, host="0.0.0.0")
