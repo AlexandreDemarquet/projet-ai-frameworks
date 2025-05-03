@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # URL de base de l'API
 API_URL = "http://127.0.0.1:8000"
 TEST_IMAGE_PATH = "/home/tristan/Images/Captures d’écran/Capture d’écran du 2024-11-25 09-13-28.png"
-TEST_IMAGE_PATH = "sorted_movie_posters_paligema/action/110.jpg"
+TEST_IMAGE_PATH = "sorted_movie_posters_paligema/animation/158.jpg"
 
 
 def test_predict():

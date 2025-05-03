@@ -1,3 +1,5 @@
 api/weights/
 api/content/
 db/sorted_movie_posters_paligema
+ihm/sorted_movie_posters_paligema/
+*.jpg

@@ -23,7 +23,7 @@ transform = transforms.Compose([
     normalize
 ])
 
-dataset = torchvision.datasets.ImageFolder(root="data/posters/content/sorted_movie_posters_paligema", transform=transform)
+dataset = torchvision.datasets.ImageFolder(root="sorted_movie_posters_paligema", transform=transform)
 dataloader = DataLoader(dataset, batch_size=128, num_workers=2, shuffle=False)
 
 # On récupère la liste complète des chemins
