@@ -18,7 +18,8 @@ RUN pip install gdown
 COPY . /app
 
 # Télécharger les données et le modèle depuis Google Drive
-RUN python /app/download_data.py
+#RUN python /app/download_data.py
+RUN python download_data.py && python buildIndexDb.py
 
 # Exposer le port 8000 pour l'API
 EXPOSE 8000

@@ -5,7 +5,7 @@ import os
 import torch
 import torchvision
 import torchvision.models as models
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from embeggings_model import model
@@ -23,14 +23,16 @@ transform = transforms.Compose([
     normalize
 ])
 
-dataset = torchvision.datasets.ImageFolder(root="sorted_movie_posters_paligema", transform=transform)
-dataloader = DataLoader(dataset, batch_size=128, num_workers=2, shuffle=False)
+dataset = torchvision.datasets.ImageFolder(root="data/content/sorted_movie_posters_paligema", transform=transform)
+dataloader = DataLoader(dataset, batch_size=128, num_workers=0, shuffle=False)
 
 # On récupère la liste complète des chemins
 all_image_paths = [sample[0] for sample in dataset.samples]
 
 # Chargement du modèle
-model = model.cuda()
+#model = model.cuda()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
 
 # Création des embeddings
 features_list = []
@@ -38,10 +40,11 @@ paths_list = []
 
 # Compteur pour suivre l'image
 idx = 0
-
+print("Création des index de la db annoy")
 for x, _ in tqdm(dataloader):
     with torch.no_grad():
-        embeddings = model(x.cuda())
+        #embeddings = model(x.cuda())
+        embeddings = model(x.to(device))
         features_list.extend(embeddings.cpu().numpy())
 
     # Récupération des chemins pour ce batch
