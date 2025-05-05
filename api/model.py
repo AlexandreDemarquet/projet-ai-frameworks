@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
+from torchvision.models import ResNet50_Weights
 
 class FilmClassifier(nn.Module):
     def __init__(self, num_classes):
