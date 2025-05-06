@@ -8,6 +8,10 @@ from model import FilmClassifier
 import matplotlib.pyplot as plt
 import numpy as np
 from flask import send_file
+from lime import lime_image
+from skimage.segmentation import mark_boundaries
+import torch.nn.functional as F
+
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -73,6 +77,9 @@ def batch_predict():
 
     return jsonify({"predictions": predictions.tolist()})
 
+
+########### XAI #####################
+
 def get_vanilla_grad(img, model):
     img.retain_grad()
     output = model(img)
@@ -81,8 +88,8 @@ def get_vanilla_grad(img, model):
     output_max.backward()
     return img.grad
 
-@app.route('/saliency', methods=['POST'])
-def saliency():
+@app.route('/smoothgrad', methods=['POST'])
+def smoothgrad():
     # Récupérer l'image
     img_file = request.data #request.files["image"]
     # img_pil = Image.open(img_file.stream).convert("RGB")
@@ -128,6 +135,63 @@ def saliency():
 
     return send_file(buf, mimetype='image/png')
 
+
+means = [0.5, 0.5, 0.5]  # remplace par tes vraies valeurs si besoin
+stds = [0.5, 0.5, 0.5]
+
+lime_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(means, stds),
+])
+
+@app.route('/lime', methods=['POST'])
+def lime_explanation():
+    try:
+        img_file = request.data
+        img_pil = Image.open(io.BytesIO(img_file))
+        np_img = np.array(img_pil)
+
+        # Fonction pour batch_predict pour LIME
+        def batch_predict(images):
+            model.eval()
+            batch = torch.stack([lime_transform(Image.fromarray(img)) for img in images], dim=0)
+            batch = batch.to(device)
+            with torch.no_grad():
+                logits = model(batch)
+                probs = F.softmax(logits, dim=1)
+            return probs.detach().cpu().numpy()
+
+        # Créer une explication LIME
+        explainer = lime_image.LimeImageExplainer()
+        explanation = explainer.explain_instance(
+            np_img,
+            batch_predict,
+            top_labels=5,
+            hide_color=0,
+            num_samples=1000
+        )
+
+        temp, mask = explanation.get_image_and_mask(
+            explanation.top_labels[0],
+            positive_only=False,
+            num_features=10,
+            hide_rest=False
+        )
+        img_boundary = mark_boundaries(temp / 255.0, mask)
+
+        # Sauvegarde de l'image LIME en mémoire
+        fig, ax = plt.subplots()
+        ax.imshow(img_boundary)
+        ax.axis('off')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight')
+        plt.close(fig)
+        buf.seek(0)
+
+        return send_file(buf, mimetype='image/png')
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True, host="0.0.0.0")

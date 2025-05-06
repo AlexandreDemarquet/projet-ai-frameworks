@@ -6,7 +6,8 @@ from PIL import Image
 # Définir les URLs des APIs
 GENRE_API_URL = "http://api:5000/predict"
 SIMILAR_API_URL = "http://api:5001/predict"
-SALIENCY_API_URL = "http://api:5000/saliency"
+SMOOTHGRAD_API_URL = "http://api:5000/smoothgrad"
+LIME_API_URL = "http://api:5000/lime"
 
 # Mapping des indices vers les noms des genres
 GENRE_LABELS = {
@@ -50,22 +51,37 @@ def find_similar(image):
     except Exception as e:
         return f"Erreur: {str(e)}"
 
-def get_saliency_map(image):
+def get_smoothgrad_map(image):
     try:
         img_binary = io.BytesIO()
         image.save(img_binary, format="PNG")
         # files = {'image': img_binary}
-        response = requests.post(SALIENCY_API_URL, data=img_binary.getvalue())
+        response = requests.post(SMOOTHGRAD_API_URL, data=img_binary.getvalue())
         
         if response.status_code == 200:
             return Image.open(io.BytesIO(response.content))
         else:
             return None
     except Exception as e:
-       	print(e)
-       	return None
+        return f"Erreur: {str(e)}"
 
-#Interface
+def get_lime_map(image):
+    try:
+        img_binary = io.BytesIO()
+        image.save(img_binary, format="PNG")
+        # files = {'image': img_binary}
+        response = requests.post(LIME_API_URL, data=img_binary.getvalue())
+        
+        if response.status_code == 200:
+            return Image.open(io.BytesIO(response.content))
+        else:
+            return None
+    except Exception as e:
+        return f"Erreur: {str(e)}"
+    
+
+################################# Interface ######################################
+
 st.title("Prédiction de Genre et Recommandations de Films")
 uploaded_image = st.file_uploader("Uploader une image de poster de film", type=["png", "jpg", "jpeg"])
 
@@ -85,10 +101,16 @@ if uploaded_image:
                 st.image(img, use_column_width=True)
         else:
             st.write("Aucune recommandation trouvée.")
-    if st.button("Afficher la saliency map"):
-        saliency_map = get_saliency_map(image)
+    if st.button("Afficher la smooth grad map"):
+        saliency_map = get_smoothgrad_map(image)
         if saliency_map:
             st.image(saliency_map, caption="Carte de saillance (saliency map)", use_column_width=True)
         else:
-            st.write("Impossible de générer la saliency map.")
+            st.write("Impossible de générer la smooth grad map.")
+    if st.button("Afficher la lime map"):
+        saliency_map = get_lime_map(image)
+        if saliency_map:
+            st.image(saliency_map, caption="Carte de saillance (saliency map)", use_column_width=True)
+        else:
+            st.write("Impossible de générer la lime map.")
     
