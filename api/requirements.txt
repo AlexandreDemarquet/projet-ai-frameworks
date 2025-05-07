@@ -3,3 +3,9 @@ redis
 torch
 torchvision
 numpy
+matplotlib
+pillow
+scikit-image
+lime
+streamlit
+requests

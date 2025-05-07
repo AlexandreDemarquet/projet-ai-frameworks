@@ -11,20 +11,7 @@ from torchvision.datasets import ImageFolder
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# def train(net, optimizer, loader, epochs=10):
-#     criterion = nn.CrossEntropyLoss()
-#     for epoch in range(epochs):
-#         running_loss = []
-#         t = tqdm(loader)
-#         for x, y in t:
-#             x, y = x.to(device), y.to(device)
-#             outputs = net(x)
-#             loss = criterion(outputs, y)
-#             running_loss.append(loss.item())
-#             optimizer.zero_grad()
-#             loss.backward()
-#             optimizer.step()
-#             t.set_description(f'training loss: {mean(running_loss)}')
+
 
 
 def train(net, optimizer, loader, epochs, freeze_epochs, lr, fn_lr):

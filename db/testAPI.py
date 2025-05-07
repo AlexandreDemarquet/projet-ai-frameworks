@@ -47,37 +47,3 @@ def test_predict():
 
 if __name__ == "__main__":
     response = test_predict()
-
-
-
-
- 
-# # Tester si l'API est en ligne
-# def test_api_status():
-#     response = requests.get(BASE_URL)
-#     print("Statut de l'API:", response.json())
-
-# # Tester la recherche d'un vecteur aléatoire
-# def test_annoy_search():
-#     # Générer un vecteur aléatoire de 100 dimensions
-#     img_pil = Image.open(io.BytesIO(img_binary))
-
-#         # Transform the PIL image
-#     tensor = transform(img_pil).to(device)
-#     tensor = tensor.unsqueeze(0)
-
-#     with torch.no_grad():
-#         embeddings = model(tensor)
-
-#     query_vector = embeddings.cpu().numpy()
-#     vector_str = ",".join(map(str, vector))  # Convertir en string pour l'API
-
-#     # Envoyer la requête
-#     response = requests.get(f"{BASE_URL}/search/", params={"vector": vector_str, "k": 5})
-
-#     # Afficher la réponse
-#     print("Résultat de la recherche:", response.json())
-
-# if __name__ == "__main__":
-#     test_api_status()
-#     test_annoy_search()

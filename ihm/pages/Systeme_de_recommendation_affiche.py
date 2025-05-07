@@ -38,7 +38,7 @@ uploaded_image = st.file_uploader("Uploader une image de poster de film", type=[
 
 if uploaded_image:
     image = Image.open(uploaded_image)
-    st.image(image, caption="🎞️ Image chargée", use_column_width=True)
+    st.image(image, caption="🎞️ Image chargée", use_container_width=True)
 
     if st.button("🔍 Trouver des films similaires"):
         similar_images_b64 = find_similar(image)
@@ -49,7 +49,7 @@ if uploaded_image:
                 try:
                     img_bytes = base64.b64decode(b64_img)
                     img = Image.open(io.BytesIO(img_bytes))
-                    st.image(img, caption=f"Recommandation #{i+1}", use_column_width=True)
+                    st.image(img, caption=f"Recommandation #{i+1}", use_container_width=True)
                 except Exception as e:
                     st.write(f"Erreur lors de l'affichage d'une image : {str(e)}")
         else:

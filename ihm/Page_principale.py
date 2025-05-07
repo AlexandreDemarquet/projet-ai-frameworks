@@ -4,7 +4,8 @@ st.set_page_config(layout="wide")
 
 st.session_state["GENRE_API_URL"] = "http://api:5000/predict"
 st.session_state["SIMILAR_API_URL"] = "http://api:5000/predict_genre"
-
+st.session_state["SMOOTHGRAD_API_URL"] = "http://api:5000/smoothgrad"
+st.session_state["LIME_API_URL"] = "http://api:5000/lime"
 
 st.title("Projet IA Frameworks")
 st.write("2025 - Dion Thomas / Gay Tristan / Gris Clément / Demarquet Alexandre")
