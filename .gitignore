@@ -3,3 +3,6 @@ api/content/
 db/sorted_movie_posters_paligema
 ihm/sorted_movie_posters_paligema/
 *.jpg
+*__pycache__*
+*annoy_index*
+*annoy-database*

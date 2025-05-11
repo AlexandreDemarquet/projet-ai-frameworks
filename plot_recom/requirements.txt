@@ -1,0 +1,10 @@
+flask
+kaggle
+kagglehub
+gunicorn
+annoy
+torch
+torchvision
+numpy
+pandas
+scikit-learn

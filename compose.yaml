@@ -54,6 +54,14 @@ services:
     networks:
       - film-network
 
+  plot_recom:
+    container_name: plot_recom
+    build: ./plot_recom
+    ports:
+      - "8080:8080"
+    networks:
+      - film-network
+
   interface:
     container_name: ihm
     build: ./ihm
