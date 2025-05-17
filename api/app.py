@@ -11,6 +11,7 @@ from flask import send_file
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
 import torch.nn.functional as F
+import shap
 
 
 
@@ -192,6 +193,77 @@ def lime_explanation():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/shap', methods=['POST'])
+def shap_explanation():
+    try:
+        print("[INFO] Requête reçue sur /shap")
+
+        img_file = request.data
+        print("[INFO] Taille des données reçues :", len(img_file))
+
+        img_pil = Image.open(io.BytesIO(img_file)).convert("RGB")
+        print("[INFO] Image convertie en PIL")
+
+        np_img = np.array(img_pil)
+        print("[INFO] Image convertie en array numpy - shape :", np_img.shape)
+
+        tensor = transform(img_pil).to(device)
+        img = tensor.unsqueeze(0)
+        img.requires_grad_()
+        print("[INFO] Image transformée en tenseur pour le modèle - shape :", img.shape)
+
+        masker = shap.maskers.Image("blur(128,128)", np_img.shape)
+
+        def wrapped_model(x):
+            model.eval()
+            x = torch.tensor(x, dtype=torch.float32).permute(0, 3, 1, 2).to(device)
+            with torch.no_grad():
+                logits = model(x)
+                probs = F.softmax(logits, dim=1)
+            return probs.detach().cpu().numpy()
+
+        explainer = shap.Explainer(wrapped_model, masker, output_names=[str(i) for i in range(model(img).shape[1])])
+        print("[INFO] Explainer SHAP initialisé")
+
+        shap_values = explainer(np_img[None, :, :, :], max_evals=500, batch_size=20)
+        print("[INFO] SHAP values calculés")
+
+        # Sélectionner la classe la plus probable
+        predicted_class = np.argmax(wrapped_model(np_img[None, :, :, :]))
+        print("[INFO] Classe prédite :", predicted_class)
+
+        # Extraire les valeurs SHAP correspondantes
+        shap_val = shap_values.values[predicted_class]  # shape: (H, W, 3)
+        shap_val = shap_val.sum(-1)  # passer de (H, W, 3) à (H, W)
+
+        # Affichage avec matplotlib
+        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+        ax[0].imshow(np_img)
+        ax[0].set_title("Image originale")
+        ax[0].axis('off')
+        ax[1].imshow(np_img, alpha=0.6)
+        im = ax[1].imshow(shap_val, cmap='hot', alpha=0.6)
+        ax[1].set_title("Carte SHAP")
+        ax[1].axis('off')
+        plt.colorbar(im, ax=ax[1], fraction=0.046, pad=0.04)
+
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format='png', bbox_inches='tight')
+        plt.close()
+        buf.seek(0)
+
+        print("[INFO] Image SHAP envoyée")
+        return send_file(buf, mimetype='image/png')
+
+    except Exception as e:
+        print("[ERREUR]", e)
+        return jsonify({"error": str(e)}), 500
+
+
+
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True, host="0.0.0.0")

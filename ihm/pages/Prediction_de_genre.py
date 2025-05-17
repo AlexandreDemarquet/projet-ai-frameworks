@@ -58,8 +58,26 @@ def get_lime_map(image):
     except Exception as e:
         return f"Erreur: {str(e)}"
 
+def get_shap_map(image):
+    try:
+        img_binary = io.BytesIO()
+        image.save(img_binary, format="PNG")
+        response = requests.post(st.session_state["SHAP_API_URL"], data=img_binary.getvalue())
+        
+        if response.status_code == 200:
+            return Image.open(io.BytesIO(response.content))
+        else:
+            print("❌ Requête SHAP échouée")
+            print("Status code :", response.status_code)
+            print("Texte :", response.text)
+            return None
+    except Exception as e:
+        print("🧨 Exception dans get_shap_map :", str(e))
+        return None
 
-st.title("Prédiction de Genre ")
+
+
+st.title("Prédiction de Genre et Interprétabilité")
 uploaded_image = st.file_uploader("Uploader une image de poster de film", type=["png", "jpg", "jpeg"])
 
 if uploaded_image:
@@ -82,4 +100,11 @@ if uploaded_image:
             st.image(saliency_map, caption="Carte de saillance (saliency map)", use_container_width=True)
         else:
             st.write("Impossible de générer la lime map.")
-    
+    if st.button("Afficher la SHAP map"):
+        st.write("➡️ Bouton SHAP cliqué")  # Ajout pour debug
+        shap_map = get_shap_map(image)
+        if shap_map:
+            st.image(shap_map, caption="Carte SHAP (importance par pixel)", use_container_width=True)
+            st.success("✅ Carte SHAP générée avec succès")
+        else:
+            st.error("❌ Impossible de générer la carte SHAP.")

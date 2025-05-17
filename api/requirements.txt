@@ -9,3 +9,4 @@ scikit-image
 lime
 streamlit
 requests
+shap
