@@ -25,7 +25,7 @@ args = parser.parse_args()
 model_path = args.model_path
 
 model = FilmClassifier(10)
-# Load the model
+
 model.load_state_dict(torch.load(model_path, weights_only=False))
 model.to(device)
 model.eval()
@@ -45,11 +45,9 @@ def predict():
     img_binary = request.data
     img_pil = Image.open(io.BytesIO(img_binary))
 
-    # Transform the PIL image
     tensor = transform(img_pil).to(device)
-    tensor = tensor.unsqueeze(0)  # Add batch dimension
+    tensor = tensor.unsqueeze(0) 
 
-    # Make prediction
     with torch.no_grad():
         outputs = model(tensor)
         _, predicted = outputs.max(1)
@@ -58,7 +56,6 @@ def predict():
 
 @app.route('/batch_predict', methods=['POST'])
 def batch_predict():
-    # Get the image data from the request
     images_binary = request.files.getlist("images[]")
 
     tensors = []
@@ -68,10 +65,8 @@ def batch_predict():
         tensor = transform(img_pil)
         tensors.append(tensor)
 
-    # Stack tensors to form a batch tensor
     batch_tensor = torch.stack(tensors, dim=0)
 
-    # Make prediction
     with torch.no_grad():
         outputs = model(batch_tensor.to(device))
         _, predictions = outputs.max(1)
@@ -91,22 +86,15 @@ def get_vanilla_grad(img, model):
 
 @app.route('/smoothgrad', methods=['POST'])
 def smoothgrad():
-    # Récupérer l'image
-    img_file = request.data #request.files["image"]
-    # img_pil = Image.open(img_file.stream).convert("RGB")
-    # np_img = np.array(img_pil)
+    img_file = request.data 
 
-    # Transformer en tenseur
-    # img = transform(img_pil).unsqueeze(0).to(device)
     img_pil = Image.open(io.BytesIO(img_file))
     np_img = np.array(img_pil)
 
-    # Transform the PIL image
     tensor = transform(img_pil).to(device)
     img = tensor.unsqueeze(0)
     img.requires_grad_()
 
-    # Calcul des gradients avec bruit
     stdev_spread = 0.15
     n_samples = 100
     stdev = stdev_spread * (img.max() - img.min())
@@ -122,7 +110,6 @@ def smoothgrad():
     saliency, _ = torch.max(total_gradients.abs(), dim=1)
     saliency = saliency.squeeze(0).cpu().numpy()
 
-    # Créer l’image de la saliency map
     fig, ax = plt.subplots(1, 2, figsize=(15, 10))
     ax[0].imshow(np_img)
     ax[0].axis('off')
@@ -137,7 +124,7 @@ def smoothgrad():
     return send_file(buf, mimetype='image/png')
 
 
-means = [0.5, 0.5, 0.5]  # remplace par tes vraies valeurs si besoin
+means = [0.5, 0.5, 0.5] 
 stds = [0.5, 0.5, 0.5]
 
 lime_transform = transforms.Compose([
@@ -152,7 +139,6 @@ def lime_explanation():
         img_pil = Image.open(io.BytesIO(img_file))
         np_img = np.array(img_pil)
 
-        # Fonction pour batch_predict pour LIME
         def batch_predict(images):
             model.eval()
             batch = torch.stack([lime_transform(Image.fromarray(img)) for img in images], dim=0)
@@ -162,7 +148,6 @@ def lime_explanation():
                 probs = F.softmax(logits, dim=1)
             return probs.detach().cpu().numpy()
 
-        # Créer une explication LIME
         explainer = lime_image.LimeImageExplainer()
         explanation = explainer.explain_instance(
             np_img,
@@ -180,7 +165,6 @@ def lime_explanation():
         )
         img_boundary = mark_boundaries(temp / 255.0, mask)
 
-        # Sauvegarde de l'image LIME en mémoire
         fig, ax = plt.subplots()
         ax.imshow(img_boundary)
         ax.axis('off')
@@ -197,70 +181,57 @@ def lime_explanation():
 @app.route('/shap', methods=['POST'])
 def shap_explanation():
     try:
-        print("[INFO] Requête reçue sur /shap")
-
         img_file = request.data
-        print("[INFO] Taille des données reçues :", len(img_file))
-
         img_pil = Image.open(io.BytesIO(img_file)).convert("RGB")
-        print("[INFO] Image convertie en PIL")
-
         np_img = np.array(img_pil)
-        print("[INFO] Image convertie en array numpy - shape :", np_img.shape)
 
-        tensor = transform(img_pil).to(device)
-        img = tensor.unsqueeze(0)
-        img.requires_grad_()
-        print("[INFO] Image transformée en tenseur pour le modèle - shape :", img.shape)
+        input_tensor = transform(img_pil).unsqueeze(0).to(device)
+        input_tensor.requires_grad_(True)
 
-        masker = shap.maskers.Image("blur(128,128)", np_img.shape)
+        model.eval()
+        with torch.no_grad():
+            logits = model(input_tensor)
+            predicted_class = logits.argmax(dim=1).item()
 
-        def wrapped_model(x):
-            model.eval()
-            x = torch.tensor(x, dtype=torch.float32).permute(0, 3, 1, 2).to(device)
+        input_np = np.array(img_pil) / 255.0 
+
+        masker = shap.maskers.Image("inpaint_telea", input_np.shape)
+
+        def wrapped_model(X):
+            X_torch = torch.tensor(X).permute(0, 3, 1, 2).float().to(device)
             with torch.no_grad():
-                logits = model(x)
-                probs = F.softmax(logits, dim=1)
-            return probs.detach().cpu().numpy()
+                out = model(X_torch)
+                probs = torch.nn.functional.softmax(out, dim=1)
+            return probs.cpu().numpy()
 
-        explainer = shap.Explainer(wrapped_model, masker, output_names=[str(i) for i in range(model(img).shape[1])])
-        print("[INFO] Explainer SHAP initialisé")
+        explainer = shap.Explainer(
+            wrapped_model,
+            masker=masker,
+            output_names=[str(i) for i in range(logits.shape[1])]
+        )
 
-        shap_values = explainer(np_img[None, :, :, :], max_evals=500, batch_size=20)
-        print("[INFO] SHAP values calculés")
-
-        # Sélectionner la classe la plus probable
-        predicted_class = np.argmax(wrapped_model(np_img[None, :, :, :]))
-        print("[INFO] Classe prédite :", predicted_class)
-
-        # Extraire les valeurs SHAP correspondantes
-        shap_val = shap_values.values[predicted_class]  # shape: (H, W, 3)
-        shap_val = shap_val.sum(-1)  # passer de (H, W, 3) à (H, W)
-
-        # Affichage avec matplotlib
-        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-        ax[0].imshow(np_img)
-        ax[0].set_title("Image originale")
-        ax[0].axis('off')
-        ax[1].imshow(np_img, alpha=0.6)
-        im = ax[1].imshow(shap_val, cmap='hot', alpha=0.6)
-        ax[1].set_title("Carte SHAP")
-        ax[1].axis('off')
-        plt.colorbar(im, ax=ax[1], fraction=0.046, pad=0.04)
+        shap_values = explainer(
+            input_np[np.newaxis, :, :, :],
+            max_evals=500,
+            batch_size=20,
+            outputs=shap.Explanation.argsort.flip[:1]
+        )
 
         buf = io.BytesIO()
-        plt.tight_layout()
+        shap.image_plot(shap_values, show=False)
+
+        plt.gca().set_title('')
+        plt.gca().set_xlabel('')
+        plt.gca().set_ylabel('')
+
         plt.savefig(buf, format='png', bbox_inches='tight')
         plt.close()
         buf.seek(0)
 
-        print("[INFO] Image SHAP envoyée")
         return send_file(buf, mimetype='image/png')
 
     except Exception as e:
-        print("[ERREUR]", e)
         return jsonify({"error": str(e)}), 500
-
 
 
 

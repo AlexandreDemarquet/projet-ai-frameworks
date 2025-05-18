@@ -62,18 +62,17 @@ def get_shap_map(image):
     try:
         img_binary = io.BytesIO()
         image.save(img_binary, format="PNG")
-        response = requests.post(st.session_state["SHAP_API_URL"], data=img_binary.getvalue())
+        url = st.session_state["SHAP_API_URL"]
+        
+        response = requests.post(url, data=img_binary.getvalue())
         
         if response.status_code == 200:
             return Image.open(io.BytesIO(response.content))
         else:
-            print("❌ Requête SHAP échouée")
-            print("Status code :", response.status_code)
-            print("Texte :", response.text)
             return None
     except Exception as e:
-        print("🧨 Exception dans get_shap_map :", str(e))
         return None
+
 
 
 
@@ -101,10 +100,8 @@ if uploaded_image:
         else:
             st.write("Impossible de générer la lime map.")
     if st.button("Afficher la SHAP map"):
-        st.write("➡️ Bouton SHAP cliqué")  # Ajout pour debug
         shap_map = get_shap_map(image)
         if shap_map:
             st.image(shap_map, caption="Carte SHAP (importance par pixel)", use_container_width=True)
-            st.success("✅ Carte SHAP générée avec succès")
         else:
-            st.error("❌ Impossible de générer la carte SHAP.")
+            st.write("❌ Impossible de générer la carte SHAP.")

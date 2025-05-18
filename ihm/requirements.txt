@@ -1,4 +1,4 @@
 streamlit
 numpy
 gradio
-opencv-python-headless
+

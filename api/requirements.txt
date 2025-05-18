@@ -10,3 +10,4 @@ lime
 streamlit
 requests
 shap
+opencv-python-headless
