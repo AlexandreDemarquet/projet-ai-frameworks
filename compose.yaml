@@ -70,6 +70,7 @@ services:
     depends_on:
       - api
       - db
+      - plot_recom
     networks:
       - film-network
 

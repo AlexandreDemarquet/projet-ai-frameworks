@@ -2,35 +2,43 @@ from flask import Flask, request,jsonify
 from annoy import AnnoyIndex
 import torch
 import pandas as pd
-import base64
 from sklearn.feature_extraction.text import TfidfVectorizer
-from transformers import DistilBertTokenizerFast
+from transformers import DistilBertTokenizerFast,DistilBertModel
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-tfidf = TfidfVectorizer(stop_words='english')
+tfidf = TfidfVectorizer(stop_words='english',max_features=576)
 distilbert_tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
+distilbert_model = DistilBertModel.from_pretrained('distilbert-base-uncased').to(device)
+distilbert_model.eval()
+
+df_films = pd.read_csv('data/movies_metadata.csv')
+titles_list = df_films['original_title'].tolist()
+
+all_plots = df_films[df_films['overview'].notna()]['overview'].tolist()
+tfidf_matrix = tfidf.fit_transform(all_plots)  # fit globalement
+
+title_overview_dict = df_films.set_index('original_title')['overview'].to_dict()
 
 
 # Charger l'index
-dimension = 576  # Dimension des embeddings
-index_bow = AnnoyIndex(dimension, 'angular')
+dimension_bow = 576  
+index_bow = AnnoyIndex(dimension_bow, 'angular')
 index_bow.load("annoy_index_bow.ann")  # Charger l'index pré-construit
 
-index_distil= AnnoyIndex(dimension, 'angular')
+dimension_distil = 768
+index_distil= AnnoyIndex(dimension_distil, 'angular')
 index_distil.load("annoy_index_distil.ann")  # Charger l'index pré-construit
-
-df = pd.read_csv("annoy-database.csv")
 
 app = Flask(__name__)
 
 
-df = pd.read_csv('annoy-database.csv')
-paths_list = df['poster_path'].tolist()
 
 def search(index,query_vector, k=5):
     indices = index.get_nns_by_vector(query_vector, k)
-    paths = [paths_list[idx] for idx in indices]
-    return paths
+    titles = [titles_list[idx] for idx in indices]
+    return titles
 
 
 @app.route('/predict', methods=['POST'])
@@ -42,33 +50,27 @@ def predict():
         model_type = data.get("model")
 
         if model_type == "bow":
-            model=tfidf
             index=index_bow
+            embeddings = tfidf.transform([plot]).toarray()
         else:
-            model=distilbert_tokenizer
             index=index_distil
-
-
-        with torch.no_grad():
-            embeddings = model(plot)
+            tokens = distilbert_tokenizer(plot, truncation=True, padding="longest", return_tensors="pt").to(device)
+            with torch.no_grad():
+                outputs = distilbert_model(**tokens)
+                embeddings = outputs.last_hidden_state.mean(dim=1).cpu().numpy()
 
         query_vector = embeddings.flatten()
 
         # Récupère les chemins vers les images similaires
-        image_paths = search(index,query_vector) 
+        titles = search(index,query_vector) 
+        resumes = [title_overview_dict[t] for t in titles]
 
-        # Charger et encoder les images en base64
-        encoded_images = []
-        for path in image_paths:
-            with open(path, "rb") as f:
-                img_data = f.read()
-                encoded = base64.b64encode(img_data).decode("utf-8")
-                encoded_images.append(encoded)
 
         return jsonify({
-            "images": encoded_images,
-            "format": "base64",
-            "note": "Chaque image est encodée en base64, à décoder côté client pour affichage"
+            "titles": titles,
+            "plots" : resumes,
+            "format": "str",
+            "note": "Chaque titre est une string"
         })
 
     except Exception as e:
@@ -76,6 +78,6 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(port=8080, debug=True, host="0.0.0.0")
+    app.run(port=8080, debug=True, use_reloader=False, host="0.0.0.0")
 
 

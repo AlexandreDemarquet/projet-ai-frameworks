@@ -21,7 +21,7 @@ class MoviesDataset(Dataset):
 dataset = MoviesDataset("data/movies_metadata.csv")
 all_plots = list(dataset.plots)
 
-dataloader = DataLoader(dataset, batch_size=128, num_workers=0, shuffle=False)
+dataloader = DataLoader(dataset, batch_size=16, num_workers=0, shuffle=False)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 tfidf = TfidfVectorizer(stop_words='english', max_features=576)
@@ -51,7 +51,7 @@ for x in tqdm(dataloader):
         features_list_bow.append(vec)
 
     # Embeddings DistilBERT
-    tokens = distilbert_tokenizer(x, truncation=True, padding=True, return_tensors="pt").to(device)
+    tokens = distilbert_tokenizer(x, truncation=True, padding="longest", return_tensors="pt").to(device)
     with torch.no_grad():
         outputs = distilbert_model(**tokens)
         cls_embeddings = outputs.last_hidden_state.mean(dim=1)
@@ -68,7 +68,7 @@ df = pd.DataFrame({
 df.to_csv('annoy-database.csv', index=False)
 
 # Sauvegarde de l'index Annoy BOW
-dim_bow = len(features_list_bow[0])
+dim_bow = len(features_list_bow[0].tolist())
 annoy_index_bow = AnnoyIndex(dim_bow, 'angular')
 for i, vec in enumerate(features_list_bow):
     annoy_index_bow.add_item(i, vec)
@@ -76,9 +76,12 @@ annoy_index_bow.build(10)
 annoy_index_bow.save("annoy_index_bow.ann")
 
 # Sauvegarde de l'index Annoy DistilBERT
-dim_distil = len(features_list_distil[0])
+dim_distil = len(features_list_distil[0].tolist())
 annoy_index_distil = AnnoyIndex(dim_distil, 'angular')
 for i, vec in enumerate(features_list_distil):
     annoy_index_distil.add_item(i, vec)
 annoy_index_distil.build(10)
 annoy_index_distil.save("annoy_index_distil.ann")
+
+print(f"dim_bow : {dim_bow}")
+print(f"dim_distil : {dim_distil}")

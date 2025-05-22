@@ -1,6 +1,4 @@
 import requests
-import numpy as np
-import matplotlib.pyplot as plt
 
 # URL de base de l'API
 API_URL = "http://127.0.0.1:8080"
@@ -9,11 +7,12 @@ TEST_PLOT = "Un homme fait un tour du monde"
 
 def test_predict():
     try:
+        json_data_all = []
         for model_type in ["bow", "distil"]:
             response = requests.post(
                 f"{API_URL}/predict",
                 json={"plot": TEST_PLOT, "model": model_type},
-                headers={"Content-Type": "application/octet-stream"}
+                headers={"Content-Type": "application/json"}
             )
 
             print("[INFO] Status Code:", response.status_code)
@@ -27,15 +26,24 @@ def test_predict():
             print("[INFO] Parsed JSON:", json_data)
 
             # Vérifier que la clé 'prediction' existe dans la réponse
-            assert "images" in json_data, "'prediction' not in response JSON"
-            assert isinstance(json_data["images"], list), "'prediction' is not a list"
+            assert "titles" in json_data, "'titles' not in response JSON"
+            assert isinstance(json_data["titles"], list), "'titles' is not a list"
 
             # Vérifier que les éléments de la liste sont des chaînes ou des entiers
-            for item in json_data["images"]:
+            for item in json_data["titles"]:
                 assert isinstance(item, (str, int)), f"Item {item} is not a string or int"
 
-            print("✅ Test passed! Results:", json_data["images"])
-            return json_data
+            # Vérifier que la clé 'prediction' existe dans la réponse
+            assert "plots" in json_data, "'plots' not in response JSON"
+            assert isinstance(json_data["plots"], list), "'plots' is not a list"
+
+            # Vérifier que les éléments de la liste sont des chaînes ou des entiers
+            for item in json_data["plots"]:
+                assert isinstance(item, (str, int)), f"Item {item} is not a string or int"
+
+            print("✅ Test passed! Results:", json_data["titles"])
+            json_data_all.append(json_data)
+        return json_data_all
 
     except Exception as e:
         print("❌ Exception occurred during test:")
