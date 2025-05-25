@@ -15,7 +15,14 @@ RUN mkdir -p /weights
 
 RUN gdown "https://drive.google.com/uc?export=download&id=1rJ8TqbqQvk7uQnmOh9mJbk_m4anlh8f-" -O /weights/filmClassifier.pth
 
-EXPOSE 5000
+# téléchargement db bag of word et distilbert
+RUN python3 download_data.py
+RUN gdown "https://drive.google.com/uc?export=download&id=11M0MCSJS2N_xBnVyklprZ8QHDERVL8mX" -O annoy_index_bow.ann
+RUN gdown "https://drive.google.com/uc?export=download&id=1n7sIQLyznjvjXVrRkNe3bEI7PAoody2v" -O annoy_index_distil.ann
 
-CMD ["python3", "app.py"]
+                
+EXPOSE 5000 
+
+#CMD ["python3", "app.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "api:app"]
 

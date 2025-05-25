@@ -54,13 +54,13 @@ services:
     networks:
       - film-network
 
-  plot_recom:
-    container_name: plot_recom
-    build: ./plot_recom
-    ports:
-      - "8080:8080"
-    networks:
-      - film-network
+  # plot_recom:
+  #   container_name: plot_recom
+  #   build: ./plot_recom
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - film-network
 
   interface:
     container_name: ihm
@@ -70,7 +70,7 @@ services:
     depends_on:
       - api
       - db
-      - plot_recom
+      # - plot_recom
     networks:
       - film-network
 

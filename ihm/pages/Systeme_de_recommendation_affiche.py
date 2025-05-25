@@ -4,18 +4,16 @@ import io
 import base64
 from PIL import Image
 
-# Adresse de l'API (assure-toi qu'elle est accessible depuis Streamlit)
-API_URL = "http://db:8000"
+DB_URL = "http://db:8000"
 
 def find_similar(image):
     try:
-        # Convertir l'image PIL en bytes pour l'envoi
         img_binary = io.BytesIO()
         image.save(img_binary, format="PNG")
         img_binary.seek(0)
 
         response = requests.post(
-            f"{API_URL}/predict",
+            f"{DB_URL}/predict",
             data=img_binary.getvalue(),
             headers={"Content-Type": "application/octet-stream"}
         )
@@ -30,7 +28,6 @@ def find_similar(image):
         st.error(f"Erreur de communication avec l'API: {str(e)}")
         return []
 
-# Interface utilisateur Streamlit
 st.set_page_config(page_title="Reco Films", layout="centered")
 st.title("🎬 Recommandations de Films à partir d'une Affiche")
 
