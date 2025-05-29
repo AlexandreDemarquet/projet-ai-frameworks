@@ -15,3 +15,5 @@ scikit-learn
 transformers
 gdown
 gunicorn
+shap
+opencv-python-headless

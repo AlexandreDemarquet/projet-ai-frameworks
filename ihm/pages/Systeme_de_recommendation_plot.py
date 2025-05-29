@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 
 
-#API_URL = "http://plot_recom:8080"
 API_URL = st.session_state["PLOT_API_URL"]
 
 def find_similar(plot,model_type):

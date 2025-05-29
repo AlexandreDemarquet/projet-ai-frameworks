@@ -7,6 +7,8 @@ st.session_state["SIMILAR_API_URL"] = "http://api:5000/predict_genre"
 st.session_state["SMOOTHGRAD_API_URL"] = "http://api:5000/smoothgrad"
 st.session_state["LIME_API_URL"] = "http://api:5000/lime"
 st.session_state["PLOT_API_URL"] = "http://api:5000/predict_text"
+st.session_state["SHAP_API_URL"] = "http://api:5000/shap"
+
 
 
 st.title("Projet IA Frameworks")
