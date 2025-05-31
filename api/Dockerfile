@@ -25,7 +25,6 @@ RUN python3 download_data.py
 
 COPY . /app
 
-RUN echo "Télécharmgent OK"
 EXPOSE 5000 
 
 #CMD ["python3", "app.py"]
