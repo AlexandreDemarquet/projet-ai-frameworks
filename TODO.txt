@@ -1,2 +1,4 @@
 TODO:
 - télécharger les poids du réseau de neuonnes dans le dockerfile de l'api
+- créer et utiliser la base de données
+- transférer tous les fichiers d'entrainement dans un autre dossier training en dehors du dossier api

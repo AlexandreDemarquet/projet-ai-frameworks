@@ -20,6 +20,7 @@ def recognize_genre(image):
     try:
         img_binary = io.BytesIO()
         image.save(img_binary, format="PNG")
+
         response = requests.post(st.session_state["GENRE_API_URL"], data=img_binary.getvalue())
         
         if response.status_code == 200:
@@ -48,7 +49,6 @@ def get_lime_map(image):
     try:
         img_binary = io.BytesIO()
         image.save(img_binary, format="PNG")
-        # files = {'image': img_binary}
         response = requests.post(st.session_state["LIME_API_URL"], data=img_binary.getvalue())
         
         if response.status_code == 200:
@@ -57,6 +57,21 @@ def get_lime_map(image):
             return None
     except Exception as e:
         return f"Erreur: {str(e)}"
+    
+def get_shap_map(image):
+    try:
+        img_binary = io.BytesIO()
+        image.save(img_binary, format="PNG")
+        url = st.session_state["SHAP_API_URL"]
+        
+        response = requests.post(url, data=img_binary.getvalue())
+        
+        if response.status_code == 200:
+            return Image.open(io.BytesIO(response.content))
+        else:
+            return None
+    except Exception as e:
+        return None
 
 
 st.title("Prédiction de Genre ")
@@ -71,15 +86,26 @@ if uploaded_image:
         st.write(f"Genre prédit : {genre}")
 
     if st.button("Afficher la smooth grad map"):
-        saliency_map = get_smoothgrad_map(image)
+        with st.spinner("Chargement...", show_time=True):
+            saliency_map = get_smoothgrad_map(image)
         if saliency_map:
             st.image(saliency_map, caption="Carte de saillance (saliency map)", use_container_width=True)
         else:
             st.write("Impossible de générer la smooth grad map.")
     if st.button("Afficher la lime map"):
-        saliency_map = get_lime_map(image)
+        with st.spinner("Chargement...", show_time=True):
+
+            saliency_map = get_lime_map(image)
         if saliency_map:
             st.image(saliency_map, caption="Carte de saillance (saliency map)", use_container_width=True)
         else:
             st.write("Impossible de générer la lime map.")
+    if st.button("Afficher la SHAP map"):
+        with st.spinner("Chargement...", show_time=True):
+
+            shap_map = get_shap_map(image)
+        if shap_map:
+            st.image(shap_map, caption="Carte SHAP (importance par pixel)", use_container_width=True)
+        else:
+            st.write("❌ Impossible de générer la carte SHAP.")
     

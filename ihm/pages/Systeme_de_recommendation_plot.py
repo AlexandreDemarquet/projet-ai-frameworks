@@ -2,13 +2,13 @@ import streamlit as st
 import requests
 
 
-API_URL = "http://plot_recom:8080"
+API_URL = st.session_state["PLOT_API_URL"]
 
 def find_similar(plot,model_type):
     try:
 
         response = requests.post(
-            f"{API_URL}/predict",
+            API_URL,
             json={"plot": plot, "model": model_type},
             headers={"Content-Type": "application/json"}
         )

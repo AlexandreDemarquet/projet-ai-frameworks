@@ -7,5 +7,14 @@ matplotlib
 pillow
 scikit-image
 lime
-streamlit
-requests
+kaggle
+kagglehub
+annoy
+pandas
+scikit-learn
+transformers
+gdown
+gunicorn
+shap
+opencv-python-headless
+rich
