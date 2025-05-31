@@ -2,16 +2,18 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
-from torchvision.models import ResNet50_Weights
+# from torchvision.models import ResNet50_Weights
 
 class FilmClassifier(nn.Module):
     def __init__(self, num_classes):
         super(FilmClassifier, self).__init__()
 
         # Charger resnet pré-entraîné
-        self.model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
+        # self.model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
+        self.model = models.resnet50(weights=None)
 
-        # Adapter la dernière couche au nombre de classes
+
+        # adaptation de la dernière couche au nombre de classes
         num_ftrs = self.model.fc.in_features
         self.model.fc = nn.Linear(num_ftrs, num_classes)
 

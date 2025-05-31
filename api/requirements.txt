@@ -17,3 +17,4 @@ gdown
 gunicorn
 shap
 opencv-python-headless
+rich
