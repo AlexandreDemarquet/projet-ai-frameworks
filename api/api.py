@@ -64,12 +64,12 @@ tfidf = TfidfVectorizer(stop_words='english',max_features=576)
 
 
 print("--> Chargement du tokenizer...")
-tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")
+distilbert_tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")
 print("✅ Tokenizer chargé")
 
 print("--> Téléchargement des poids du modèle DistilBert (280MB)...")
-model = DistilBertModel.from_pretrained("distilbert-base-uncased").to(device)
-model.eval()
+distilbert_model = DistilBertModel.from_pretrained("distilbert-base-uncased").to(device)
+distilbert_model.eval()
 print("✅ Modèle prêt")
 
 df_films = pd.read_csv('data/movies_metadata.csv')
