@@ -5,7 +5,7 @@ L’architecture du projet repose sur trois conteneurs distincts, tous connecté
 - **`api/`** : API principale, hébergée dans un conteneur optimisé pour les performances **CUDA / NVIDIA GPU**, gérant :
   - la classification d’affiches par genre,
   - l'explicabilité de la classification d’affiches par genre avec 3 méthodes -> affichage de la smoothgrad map / shap map / lime map,
-  - la recommandation de films à partir d’un **résumé textuel**.
+  - la recommandation de films à partir d’un **résumé textuel**. Cette recommandation utilise deux bases de données Annoy, stockées sur un drive et téléchargées lors de la création de l'image docker.
   Cette API est conçue pour des **temps d'inférence rapides** grâce à l’accélération matérielle.
 
 - **`ihm/`** : Interface utilisateur développée avec **Streamlit**, permettant aux utilisateurs d’interagir simplement avec les deux APIs (via boutons, uploads, champs texte, etc.).
